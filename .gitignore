@@ -61,3 +61,8 @@ node_modules
 
 # Bucklescript output
 lib/
+
+.merlin
+
+.vscode
+out.csv
