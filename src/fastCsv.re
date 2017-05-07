@@ -13,16 +13,11 @@ external _createWriteStream : Js.undefined createWriteStreamOptions => t = "crea
 let createWriteStream options scope => {
     try {
         let stream = _createWriteStream options;
-        switch (scope stream) {
-            | None => Js.Promise.resolve @@ _end stream
-            | Some promise => {
-                promise
-                    |> then_ (fun _ => {
-                        _end stream;
-                        Js.Promise.resolve ();
-                    });
-            }
-        };
+        scope stream
+        |> then_ (fun _ => {
+            _end stream;
+            Js.Promise.resolve ();
+        });
     } {
         | err => reject err;
     }
