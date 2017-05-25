@@ -1,25 +1,32 @@
 open Node.Fs;
 open Js.Promise;
 
-module Write = {
+module type Typed = {
+    type t; /* I'd like to be able to restrict this to subtypes of Js.t {..} */
+};
+
+module Format(DataType : Typed) => {
     type t;
 
-    type t2 = t; /* Create t2 as alias for t to prevent compile error */
-    include Readable.Make({
-        type t = t2;
+    include Writeable.Make({
+        type stream = t;
+        type data = DataType.t;
     });
 
-    external write : t => Js.t {..} => unit = "" [@@bs.send];
+    include Readable.Make({
+        type stream = t;
+        type data = string;
+    });
 
     type createOptions;
     external _create : Js.undefined createOptions => t = "createWriteStream" [@@bs.module "fast-csv"];
 
     let create options scope => {
         try {
-            let stream = _create options;
-            scope stream
+            let streamObj = _create options;
+            scope streamObj
             |> then_ (fun _ => {
-                Stream._end (toStream stream);
+                Stream._end (stream streamObj);
                 resolve ();
             });
         } {
@@ -28,12 +35,17 @@ module Write = {
     };
 };
 
-module Read = {
+module Parse = {
     type t;
 
-    type t2 = t;
     include Writeable.Make({
-        type t = t2;
+        type stream = t;
+        type data = Node.StringBuffer.t;
+    });
+
+    include Readable.Make({
+        type stream = t;
+        type data = array string; /* TODO: support "headers" mode */
     });
 
     external parse : unit => t = "" [@@bs.module "fast-csv"];
@@ -50,3 +62,5 @@ module Read = {
         | `end_ func => _on stream "end" func
     };
 };
+
+let parse = Parse.parse;
