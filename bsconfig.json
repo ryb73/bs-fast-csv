@@ -8,5 +8,6 @@
             "type": "dev"
         }
     ],
-    "bsc-flags": [ "-w -10" ]
+    "refmt": 3,
+    "bsc-flags": [ "-w -10", "-bs-super-errors" ]
 }
